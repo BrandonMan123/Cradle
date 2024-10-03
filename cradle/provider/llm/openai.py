@@ -485,6 +485,8 @@ class OpenAIProvider(LLMProvider, EmbeddingProvider):
 
     def _get_azure_deployment_id_for_model(self, model_label) -> list:
         return self.provider_cfg[PROVIDER_SETTING_DEPLOYMENT_MAP][model_label]
+    
+
 
 
     def assemble_prompt_tripartite(self, template_str: str = None, params: Dict[str, Any] = None) -> List[Dict[str, Any]]:
@@ -690,6 +692,28 @@ class OpenAIProvider(LLMProvider, EmbeddingProvider):
 
     def assemble_prompt_paragraph(self, template_str: str = None, params: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         raise NotImplementedError("This method is not implemented yet.")
+
+    # def assembler_classify_label_prompt(self, img1, img2):
+
+    #     messages=[
+    #           {
+    #             "role": "user",
+    #             "content": [
+    #               {
+    #                 "type": "text",
+    #                 "text": "What’s in this image?"
+    #               },
+    #               {
+    #                 "type": "image_url",
+    #                 "image_url": {
+    #                   "url": f"data:image/jpeg;base64,{base64_image}"
+    #                 }
+    #               }
+    #             ]
+    #           }
+    #         ],
+    #     pass
+
 
 
     def assemble_prompt(self, template_str: str = None, params: Dict[str, Any] = None) -> List[Dict[str, Any]]:

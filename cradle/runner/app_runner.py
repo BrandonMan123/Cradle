@@ -283,6 +283,23 @@ class PipelineRunner():
     def run_skill_curation(self):
         pass
 
+    def infer_label(self, som_image, bb):
+        import openai
+        from PIL import Image
+        img = Image.open(som_image)
+        cropped_img = img.crop(bb)
+        return self.llm_provider.infer_label(img, cropped_img)
+
+
+    def label_buttons(self, som_image, som_bbs):
+        labels = []
+        for bb in som_bbs:
+            if "icon_name" in bb:
+                labels.append(bb["icon_name"])
+            else:
+                labels.append(self.infer_label(som_image, bb))
+        return "\n".join(f"{i}: {label}" for i, label in enumerate(labels))
+
 
     def information_gathering_preprocess(self):
 
@@ -360,10 +377,11 @@ class PipelineRunner():
                 current_augmentation[constants.LENGTH_OF_SOM_MAP] = previous_augmentation[constants.LENGTH_OF_SOM_MAP]
 
             else:
-                som_img_path, som_map = self.sam_provider.calc_and_plot_som_results(cur_screenshot_path)
+                som_img_path, som_map, som_bbs = self.sam_provider.calc_and_plot_som_results(cur_screenshot_path)
                 current_augmentation[constants.AUG_SOM_IMAGE_PATH] = som_img_path
                 current_augmentation[constants.AUG_SOM_MAP] = som_map.copy()
                 current_augmentation[constants.LENGTH_OF_SOM_MAP] = len(som_map.keys())
+                input[constants.BOUNDING_BOX_DESCRIPTIONS] = self.label_buttons(som_img_path, som_bbs)
 
             logger.write(f'SOM augmentation finished.')
 
@@ -416,12 +434,31 @@ class PipelineRunner():
             response = self.planner.information_gathering(input=self.memory.working_area)
 
         return response
+    
+    def _modify_response(self, response):
+        # Extract the list items
+        lines = response.split('\n')
+        modified_items = []
+        items = [line.split(":")[1:] for line in lines]  # Remove the number and dot
+        for i, item in enumerate(items, 1):
+            print(f"{i}. {item}")
+            res = input(f"Item {i} (originally {item}): ")
+            if not res:
+                
+                items[i-1] = "Null"
+                continue
+            modified_items.append(res)
+            items[i-1] = res
+        
+        # Reconstruct the modified list
+        modified_list = '\n'.join(f"{i}. {item}" for i, item in enumerate(items, 1))
+
+        return modified_list
 
 
     def information_gathering_postprocess(self, response):
 
         processed_response = deepcopy(response)
-
         current_augmentation = self.memory.get_recent_history(constants.AUGMENTED_IMAGES_MEM_BUCKET, k=1)[-1]
         subtask_description = self.memory.get_recent_history(constants.SUBTASK_DESCRIPTION, k=1)[-1]
 
@@ -854,7 +891,7 @@ def entry(args):
 
     task_description = "No Task"
 
-    task_id, subtask_id = 1, 0
+    task_id, subtask_id = args.task_id, 0
     try:
         # Read end to end task description from config file
         task_description = kget(config.env_config, constants.TASK_DESCRIPTION_LIST, default='')[task_id-1][constants.TASK_DESCRIPTION]

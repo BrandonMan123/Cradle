@@ -193,10 +193,12 @@ class SkillRegistry():
 
         if self.skill_mode == constants.SKILL_LIB_MODE_BASIC:
             for skill_name in self.skills:
-                if skill_name in self.skill_names_basic:
+                if skill_name in self.skill_names_basic and  skill_name not in self.skill_names_deny:
                     filtered_skills[skill_name] = self.skills[skill_name]
-        elif self.skill_mode == constants.SKILL_LIB_MODE_FULL:
-            filtered_skills = deepcopy(skills)
+        elif self.skill_mode == constants.SKILL_LIB_MODE_FULL: # remove any skills that are found in skill_names_deny
+            for skill_name in self.skills:
+                if skill_name not in self.skill_names_deny:
+                    filtered_skills[skill_name] = self.skills[skill_name]
         else:
             filtered_skills = deepcopy(skills)
 

@@ -1,0 +1,90 @@
+{
+    "env_name": "Google Chrome",
+    "sub_path": "onshape",
+    "env_short_name": "onshape",
+    "is_game": false,
+    "shared_runner": "app",
+    "skill_registry_name": "cradle.environment.chrome.skill_registry.ChromeSkillRegistry",
+    "ui_control_name": "cradle.environment.software.ui_control.SoftwareUIControl",
+    "provider_configs": {
+        "sam2som_config": {
+            "sam2som_mode": "default",
+            "sam_pred_iou_thresh": 0.4,
+            "sam_resize_ratio": 0.4,
+            "sam_contrast_level": 1.5,
+            "sam_max_area": 0.15
+        }
+    },
+    "task_description_list": [
+        {
+            "id": 1,
+            "task_description": "Create a 200x200x200 cube centered at the origin",
+            "sub_task_description_list": [
+                "Draw a sketch of a rectangle on the top plane",
+                "Select the rectangle",
+                "Extrude the rectangle"
+            ]
+        },
+        {
+            "id": 2,
+            "task_description": "Extrude the top face of the cube",
+            "sub_task_description_list": [
+            ]
+        },
+        {
+            "id": 3,
+            "task_description": "Add a fillet to the highlighted edge",
+            "sub_task_description_list": [
+            ]
+        },
+        {
+            "id": 4,
+            "task_description": "Add a fillet to the top left corner of the cube",
+            "sub_task_description_list": [
+            ]
+        }
+    ],
+    "planner_params": {
+        "__check_list__": [
+            "action_planning",
+            "information_gathering",
+            "self_reflection",
+            "task_inference"
+        ],
+        "prompt_paths": {
+            "inputs": {
+                "action_planning": "./res/onshape/prompts/inputs/action_planning.json",
+                "information_gathering": "./res/onshape/prompts/inputs/information_gathering.json",
+                "success_detection": "",
+                "self_reflection": "./res/onshape/prompts/inputs/self_reflection.json",
+                "task_inference": "./res/onshape/prompts/inputs/task_inference.json",
+                "information_text_gathering": ""
+            },
+            "templates": {
+                "action_planning": "./res/onshape/prompts/templates/action_planning.prompt",
+                "information_gathering": "./res/onshape/prompts/templates/information_gathering.prompt",
+                "success_detection": "",
+                "self_reflection": "./res/onshape/prompts/templates/self_reflection.prompt",
+                "task_inference": "./res/onshape/prompts/templates/task_inference.prompt",
+                "information_text_gathering": ""
+            }
+        }
+    },
+    "skill_configs": {
+        "skill_names_basic": [
+            "click_at_position",
+            "type_text",
+            "press_key",
+            "return_to_previous_page",
+            "press_keys_combined",
+            "click_on_label",
+            "go_back_to_target_application"
+        ],
+        "skill_names_deny": ["start_extrude_menu", "set_extrude_depth",  "extrude",
+        "fillet",
+        "set_extrude_depth",
+        "exit_menu",
+        "start_extrude_menu"],
+        "skill_names_allow": []
+    }
+}

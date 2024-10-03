@@ -9,7 +9,7 @@ from segment_anything import (
     SamPredictor,
     sam_model_registry,
 )
-from PIL import Image, ImageEnhance
+from PIL import Image, ImageEnhance, ImageDraw
 
 from cradle.utils import Singleton
 from cradle.config import Config
@@ -28,6 +28,7 @@ from cradle.utils.image_utils import (
     convert_ocr_bbox_format,
     filter_intersecting_rectangles,
 )
+from cradle.utils.json_utils import load_json
 from cradle.utils.template_matching import icons_match
 from cradle.provider.video.video_ocr_extractor import VideoOCRExtractorProvider
 from cradle import constants
@@ -52,6 +53,22 @@ class SamProvider(metaclass=Singleton):
         except Exception as e:
             logger.error(f"Failed to load the SAM model. Make sure you follow the instructions on README to download the necessary files.\n{e}")
 
+    def _mask_image(self, org_image):
+        mask = Image.new("RGB", org_image.size, (0, 0, 0))
+
+        # Create a drawing object
+        draw = ImageDraw.Draw(mask)
+        width, height = org_image.size
+        mask_area = [(0.04*width, 0.2*height), (width, height)]
+
+        # Draw a white rectangle on the mask for the area you want to keep
+        draw.rectangle(mask_area, fill=(255, 255, 255))
+
+        # Combine the original image and the mask
+        result = Image.composite(org_image, mask, mask.convert("L"))
+        # result.show()
+        return result
+
 
     def calculate_som(self, screenshot_path: str) -> List:
         """
@@ -64,7 +81,10 @@ class SamProvider(metaclass=Singleton):
             List[dict]: List of bounding boxes for each mask.
         """
         org_img = Image.open(screenshot_path)
+        org_img = self._mask_image(org_img)
+        #TODO: Apply an image mask here
         image_area = org_img.size[0] * org_img.size[1]
+        
 
         def recalculate_som_subarea(screenshot_path: str, bbox: dict, offset_top: int, offset_left: int) -> List:
             """Recursive SOM process for large bounding boxes.
@@ -79,6 +99,7 @@ class SamProvider(metaclass=Singleton):
                 List[dict]: List of bounding boxes for the refined masks.
             """
             org_img = Image.open(screenshot_path)
+            org_img = self._mask_image(org_img)
             top, left, height, width = bbox['top'], bbox['left'], bbox['height'], bbox['width']
             cropped_img = org_img.crop((left, top, left + width, top + height))
             screenshot_dir = os.path.dirname(screenshot_path)
@@ -162,7 +183,10 @@ class SamProvider(metaclass=Singleton):
 
         return all_bboxes
 
-
+    def add_labels_manual(self, som_bbs):
+        buttons = load_json("./res/onshape/icon_location.json")
+        som_bbs.extend(buttons)
+        return som_bbs
     # @TODO Move to appropriate location
     def calc_and_plot_som_results(self, screenshot_path: str) -> Tuple[str, Dict[str, any]]:
 
@@ -193,6 +217,8 @@ class SamProvider(metaclass=Singleton):
 
             som_bbs += icon_bbs
 
+        som_bbs = [som_bb for som_bb in som_bbs if som_bb["top"]+som_bb["left"] > 217]
+        som_bbs = self.add_labels_manual(som_bbs)
         # Re-sort bounding boxes after adding icons
         som_bbs.sort(key=lambda bb: (bb['top'], bb['left']))
 
@@ -211,7 +237,7 @@ class SamProvider(metaclass=Singleton):
         som_img.save(som_img_path)
         logger.debug(f"Saved the SOM screenshot to {som_img_path}")
 
-        return som_img_path, centroids_map
+        return som_img_path, centroids_map, som_bbs
 
 
     # @TODO Move to appropriate location

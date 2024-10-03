@@ -52,7 +52,7 @@ class Config(metaclass=Singleton):
 
     # Skill retrieval defaults
     skill_configs = {
-        constants.SKILL_CONFIG_FROM_DEFAULT: True,
+        constants.SKILL_CONFIG_FROM_DEFAULT: True, # used to load skills from default json file located inside .res. If false, then load from python file and embed with GPt4o
         constants.SKILL_CONFIG_RETRIEVAL: False,
         constants.SKILL_CONFIG_MAX_COUNT: 20,
         constants.SKILL_CONFIG_MODE: constants.SKILL_LIB_MODE_FULL, # FULL, BASIC, or NONE
@@ -74,7 +74,7 @@ class Config(metaclass=Singleton):
     def __init__(self) -> None:
         """Initialize the Config class"""
 
-        self.debug_mode = False
+        self.debug_mode = True
         self.continuous_mode = False
         self.continuous_limit = 0
 

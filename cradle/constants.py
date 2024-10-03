@@ -50,6 +50,7 @@ FRAME_EXTRACTOR = 'frame_extractor'
 ICON_REPLACER = 'icon_replacer'
 LLM_DESCRIPTION = 'llm_description'
 OBJECT_DETECTOR = 'object_detector'
+BOUNDING_BOX_DESCRIPTIONS = 'bounding_box_descriptions'
 
 # Parameters for each app task_description
 TASK_DESCRIPTION_LIST = 'task_description_list'

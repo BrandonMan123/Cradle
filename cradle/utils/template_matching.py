@@ -79,7 +79,7 @@ def match_template_image(src_file: str, template_file: str, debug = False, outpu
     elif scales == 'mid':
         scales = [0.3, 0.4, 0.5, 0.6, 0.7]
     elif scales == 'normal':
-        scales = [0.8, 0.9, 1.0, 1.1, 1.2]
+        scales = [0.8, 0.9, 1.0, 1.1, 1.2, 1.3]
     elif scales == 'full':
         scales = [0.5,0.75,1.0,1.5,2]
     elif not isinstance(scales, list):
@@ -87,6 +87,7 @@ def match_template_image(src_file: str, template_file: str, debug = False, outpu
 
     image = cv2.imread(assemble_project_path(src_file))
     template = cv2.imread(assemble_project_path(template_file))
+    # cv2.imshow("template", template)
 
     # Resize template according to resolution ratio
     if config.env_name == 'Stardew Valley': # @TODO move to env
@@ -162,10 +163,10 @@ def icons_match(icon_list: List[str], image_path = None) -> bool:
         # Multiple-scale-template-matching icon
         icon_template_file = f'./res/{config.env_sub_path}/icons/{icon}.png'
 
-        match_info = match_template_image(screenshot, icon_template_file, save_matches=False, scale='full')
+        match_info = match_template_image(screenshot, icon_template_file, save_matches=True, scale='full')
         match_info.sort(key=lambda bb: (bb['confidence']))
 
-        if match_info[0]['confidence'] >= confidence_threshold:
+        if round(match_info[0]['confidence'], 2) >= confidence_threshold:
 
             bb = match_info[0]['bounding_box']
             bb_dict = {
